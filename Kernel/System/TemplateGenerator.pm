@@ -710,7 +710,7 @@ sub AutoResponse {
     );
     if ( $AutoResponse{Subject} =~ /<OTRS_CUSTOMER_SUBJECT(\[(.+?)\])?>/ ) {
         my $SubjectChar = $2;
-        if (defined $SubjectChar and length($Subject) > $SubjectChar){
+        if (defined $SubjectChar and length($Subject) > $SubjectChar) {
             $Subject =~ s/^(.{$SubjectChar}).*$/$1 [...]/;
         }
         $AutoResponse{Subject} =~ s/<OTRS_CUSTOMER_SUBJECT(\[.+?\])?>/$Subject/g;
@@ -900,7 +900,7 @@ sub NotificationAgent {
     );
     if ( $Notification{Subject} =~ /<OTRS_CUSTOMER_SUBJECT(\[(.+?)\])?>/ ) {
         my $SubjectChar = $2;
-        if (defined $SubjectChar and length($Param{CustomerMessageParams}->{Subject}) > $SubjectChar){
+        if (defined $SubjectChar and length($Param{CustomerMessageParams}->{Subject}) > $SubjectChar) {
             $Param{CustomerMessageParams}->{Subject} =~ s/^(.{$SubjectChar}).*$/$1 [...]/;
 	}
 
@@ -1375,18 +1375,20 @@ sub _Replace {
             my $Line       = $2;
             my @Body       = split( /\n/, $Data{Body} );
             my $NewOldBody = '';
-            if ($Line){
+            if ( $Line ) {
                 if ( $Line > $#Body ) {
 		    $Line = $#Body + 1;
                 }
             }
-            else {$Line=$#Body + 1 }
+            else {
+                $Line=$#Body + 1;
+            }
             for ( my $i = 0; $i < $Line; $i++ ) {
 
                 # 2002-06-14 patch of Pablo Ruiz Garcia
                 # http://lists.otrs.org/pipermail/dev/2002-June/000012.html
                 #if ( $#Body >= $i ) {
-                if (defined $Body[$i]){
+                if ( defined $Body[$i] ) {
 
                     # add no quote char, do it later by using DocumentCleanup()
                     if ( $Param{RichText} ) {
@@ -1433,7 +1435,7 @@ sub _Replace {
                 TicketNumber => $Ticket{TicketNumber},
                 Subject      => $Data{Subject},
             );
-            if (defined $SubjectChar and length($Subject) > $SubjectChar){
+            if ( defined $SubjectChar and length($Subject) > $SubjectChar ) {
                 $Subject =~ s/^(.{$SubjectChar}).*$/$1 [...]/;
             }
             $Param{Text} =~ s/$Tag\[.+?\]$End/$Subject/g;
