@@ -1377,7 +1377,7 @@ sub _Replace {
             my $NewOldBody = '';
             if ( $Line ) {
                 if ( $Line > $#Body ) {
-		    $Line = $#Body + 1;
+                    $Line = $#Body + 1;
                 }
             }
             else {
