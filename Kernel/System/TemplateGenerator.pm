@@ -898,12 +898,14 @@ sub NotificationAgent {
         TicketNumber => $Ticket{TicketNumber},
         Subject => $Param{CustomerMessageParams}->{Subject} || '',
     );
-    if ( $Notification{Subject} =~ /<OTRS_CUSTOMER_SUBJECT\[(.+?)\]>/ ) {
-        my $SubjectChar = $1;
-        $Param{CustomerMessageParams}->{Subject} =~ s/^(.{$SubjectChar}).*$/$1 [...]/;
+    if ( $Notification{Subject} =~ /<OTRS_CUSTOMER_SUBJECT(\[(.+?)\])?>/ ) {
+        my $SubjectChar = $2;
+        if (defined $SubjectChar and length($Param{CustomerMessageParams}->{Subject}) > $SubjectChar){
+            $Param{CustomerMessageParams}->{Subject} =~ s/^(.{$SubjectChar}).*$/$1 [...]/;
+	}
 
         $Notification{Subject}
-            =~ s/<OTRS_CUSTOMER_SUBJECT\[.+?\]>/$Param{CustomerMessageParams}->{Subject}/g;
+            =~ s/<OTRS_CUSTOMER_SUBJECT(\[.+?\])?>/$Param{CustomerMessageParams}->{Subject}/g;
     }
     $Notification{Subject} = $Self->{TicketObject}->TicketSubjectBuild(
         TicketNumber => $Ticket{TicketNumber},
