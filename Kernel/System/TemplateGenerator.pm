@@ -1,6 +1,6 @@
 # --
 # Kernel/System/TemplateGenerator.pm - generate salutations, signatures and responses
-# Copyright (C) 2001-2014 OTRS AG, http://otrs.com/
+# Copyright (C) 2001-2013 OTRS AG, http://otrs.com/
 # --
 # This software comes with ABSOLUTELY NO WARRANTY. For details, see
 # the enclosed file COPYING for license information (AGPL). If you
@@ -708,10 +708,12 @@ sub AutoResponse {
         TicketNumber => $Ticket{TicketNumber},
         Subject      => $Subject,
     );
-    if ( $AutoResponse{Subject} =~ /<OTRS_CUSTOMER_SUBJECT\[(.+?)\]>/ ) {
-        my $SubjectChar = $1;
-        $Subject =~ s/^(.{$SubjectChar}).*$/$1 [...]/;
-        $AutoResponse{Subject} =~ s/<OTRS_CUSTOMER_SUBJECT\[.+?\]>/$Subject/g;
+    if ( $AutoResponse{Subject} =~ /<OTRS_CUSTOMER_SUBJECT(\[(.+?)\])?>/ ) {
+        my $SubjectChar = $2;
+        if (defined $SubjectChar and length($Subject) > $SubjectChar){
+            $Subject =~ s/^(.{$SubjectChar}).*$/$1 [...]/;
+        }
+        $AutoResponse{Subject} =~ s/<OTRS_CUSTOMER_SUBJECT(\[.+?\])?>/$Subject/g;
     }
     $AutoResponse{Subject} = $Self->{TicketObject}->TicketSubjectBuild(
         TicketNumber => $Ticket{TicketNumber},
@@ -1367,15 +1369,22 @@ sub _Replace {
 
         # replace <OTRS_CUSTOMER_EMAIL[]> tags
         $Tag = $Start . 'OTRS_CUSTOMER_EMAIL';
-        if ( $Param{Text} =~ /$Tag\[(.+?)\]$End/g ) {
-            my $Line       = $1;
+        if ( $Param{Text} =~ /$Tag(\[(.+?)\])?$End/g ) {
+            my $Line       = $2;
             my @Body       = split( /\n/, $Data{Body} );
             my $NewOldBody = '';
+            if ($Line){
+                if ( $Line > $#Body ) {
+		    $Line = $#Body + 1;
+                }
+            }
+            else {$Line=$#Body + 1 }
             for ( my $i = 0; $i < $Line; $i++ ) {
 
                 # 2002-06-14 patch of Pablo Ruiz Garcia
                 # http://lists.otrs.org/pipermail/dev/2002-June/000012.html
-                if ( $#Body >= $i ) {
+                #if ( $#Body >= $i ) {
+                if (defined $Body[$i]){
 
                     # add no quote char, do it later by using DocumentCleanup()
                     if ( $Param{RichText} ) {
@@ -1411,18 +1420,20 @@ sub _Replace {
             }
 
             # replace tag
-            $Param{Text} =~ s/$Tag\[.+?\]$End/$NewOldBody/g;
+            $Param{Text} =~ s/$Tag(\[.+?\])?$End/$NewOldBody/g;
         }
 
         # replace <OTRS_CUSTOMER_SUBJECT[]> tags
         $Tag = $Start . 'OTRS_CUSTOMER_SUBJECT';
-        if ( $Param{Text} =~ /$Tag\[(.+?)\]$End/g ) {
-            my $SubjectChar = $1;
+        if ( $Param{Text} =~ /$Tag(\[(.+?)\])?$End/g ) {
+            my $SubjectChar = $2;
             my $Subject     = $Self->{TicketObject}->TicketSubjectClean(
                 TicketNumber => $Ticket{TicketNumber},
                 Subject      => $Data{Subject},
             );
-            $Subject =~ s/^(.{$SubjectChar}).*$/$1 [...]/;
+            if (defined $SubjectChar and length($Subject) > $SubjectChar){
+                $Subject =~ s/^(.{$SubjectChar}).*$/$1 [...]/;
+            }
             $Param{Text} =~ s/$Tag\[.+?\]$End/$Subject/g;
         }
 
